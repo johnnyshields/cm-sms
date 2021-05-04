@@ -1,16 +1,16 @@
 module CmSms
   class Configuration
-    class ProductTokenMissing < ArgumentError; end
-    class EndpointMissing < ArgumentError; end
-    class PathMissing < ArgumentError; end
-
     ENDPOINTS = %w[https://gw.cmtelecom.com].map(&:freeze).freeze
-    PATH = '/gateway.ashx'.freeze
-    DCS = 0
+    PATH = '/v1.0/message'.freeze
     TIMEOUT = 10
 
-    attr_accessor :from, :to, :product_token
-    attr_writer :endpoints, :path, :dcs, :timeout
+    attr_accessor :from,
+                  :dcs,
+                  :product_token
+
+    attr_writer :endpoints,
+                :path,
+                :timeout
 
     alias api_key= product_token=
     alias endpoint= endpoints=
@@ -24,16 +24,8 @@ module CmSms
       @path || PATH
     end
 
-    def dcs
-      @dcs || DCS
-    end
-
     def timeout
       @timeout || TIMEOUT
-    end
-
-    def defaults
-      @defaults ||= { from: from, to: to, dcs: dcs }
     end
   end
 end

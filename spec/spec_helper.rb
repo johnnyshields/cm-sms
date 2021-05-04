@@ -11,7 +11,6 @@ Bundler.setup
 
 require 'phony'
 require 'phonelib'
-require 'builder'
 require 'cm-sms'
 
 RSpec.configure do |config|

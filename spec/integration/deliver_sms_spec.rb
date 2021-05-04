@@ -9,19 +9,20 @@ RSpec.describe 'deliver sms' do
       config.path = '/example'
     end
 
-    class NotificationMessenger < CmSms::Messenger
-      def notification
-        content from: 'Sender', to: '+41 44 111 22 33', body: 'lorem ipsum', reference: 'Ref:123'
-      end
-    end
-
     stub_request(:post, 'http://test.host/example').
-        with(body: '<?xml version="1.0" encoding="UTF-8"?><MESSAGES><AUTHENTICATION><PRODUCTTOKEN>SOMETOKEN</PRODUCTTOKEN></AUTHENTICATION><MSG><FROM>Sender</FROM><TO>+41 44 111 22 33</TO><DCS>0</DCS><BODY>lorem ipsum</BODY><REFERENCE>Ref:123</REFERENCE></MSG></MESSAGES>',
-             headers: { 'Content-Type' => 'application/xml' }).
-        to_return(status: 200, body: '', headers: {})
+        with(body: "{\"messages\":{\"authentication\":{\"productToken\":\"SOMETOKEN\"},\"msg\":[{\"body\":{\"content\":\"lorem ipsum\"},\"to\":[{\"number\":\"+41 44 111 22 33\"}],\"from\":\"Sender\",\"dcs\":0,\"minimumNumberOfMessageParts\":1,\"maximumNumberOfMessageParts\":1,\"reference\":\"Ref:123\"}]}}",
+             headers: { 'Accept' => 'application/json', 'Content-Type' => 'application/json' }).
+        to_return(status: 200, body: "{\n  \"details\": \"Created 3 message(s)\",\n  \"errorCode\": 0,\n  \"messages\": [\n    {\n      \"to\": \"0041441112233\",\n      \"status\": \"Accepted\",\n      \"reference\": null,\n      \"parts\": 3,\n      \"messageDetails\": null,\n      \"messageErrorCode\": 0\n    }\n  ]\n}")
   end
 
-  subject { NotificationMessenger.notification.deliver_now! }
+  let (:message) do
+    CmSms::Message.new(from: 'Sender',
+                       to: '+41 44 111 22 33',
+                       body: 'lorem ipsum',
+                       reference: 'Ref:123')
+  end
+
+  subject { message.deliver }
 
   it { expect(subject.success?).to be true }
 end

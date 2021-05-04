@@ -1,9 +1,9 @@
 require 'cm_sms/configuration'
 
 module CmSms
-  autoload :Messenger, 'cm_sms/messenger'
+  require 'json'
+  require 'net/http'
   autoload :Message, 'cm_sms/message'
-  autoload :MessageDelivery, 'cm_sms/message_delivery'
   autoload :Webhook, 'cm_sms/webhook'
 
   class << self

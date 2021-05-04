@@ -2,26 +2,37 @@ require 'cm_sms/response'
 
 module CmSms
   class Request
-    attr_accessor :body
-
     attr_reader :response
 
-    def initialize(body, endpoints = nil)
-      @body     = body
+    def initialize(payload, endpoints = nil)
+      @payload = payload
       @endpoint = (endpoints || CmSms.config.endpoints).sample
-      @path     = CmSms.config.path
     end
 
     def perform
-      raise CmSms::Configuration::EndpointMissing, 'Please provide an valid api endpoint.' if @endpoint.nil? || @endpoint.empty?
-      raise CmSms::Configuration::PathMissing, "Please provide an valid api path.\nIf you leave this config blank, the default will be set to /gateway.ashx." if @path.nil? || @path.empty?
-
-      uri = URI.parse(@endpoint)
-      timeout = CmSms.config.timeout
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: timeout, read_timeout: timeout) do |http|
-        @response = Response.new(http.post(@path, body, 'Content-Type' => 'application/xml'))
+      ::Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: timeout, read_timeout: timeout) do |http|
+        @response = Response.new(http.post(path, @payload.to_json, headers))
       end
       response
+    end
+
+    private
+
+    def uri
+      @uri ||= ::URI.parse(@endpoint)
+    end
+
+    def path
+      CmSms.config.path
+    end
+
+    def timeout
+      CmSms.config.timeout
+    end
+
+    def headers
+      { 'Accept' => 'application/json',
+        'Content-Type' => 'application/json' }
     end
   end
 end

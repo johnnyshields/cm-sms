@@ -4,16 +4,16 @@ require 'cm_sms/request'
 RSpec.describe CmSms::Request do
   let(:message_body) { 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirood tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At v' }
   let(:message) do
-    message = CmSms::Message.new
-    message.from = 'ACME'
-    message.to = '+41 44 111 22 33'
-    message.body = message_body
-    message.reference = 'Ref:123'
-    message
+    CmSms::Message.new(
+      product_token: 'TOKEN',
+      from: 'ACME',
+      to: '+41 44 111 22 33',
+      body: message_body,
+      reference: 'Ref:123'
+    )
   end
-  let(:request_body) { message.to_xml }
   let(:endpoints) { nil }
-  let(:request) { described_class.new(request_body, endpoints) }
+  let(:request) { described_class.new(message.payload, endpoints) }
 
   describe '@endpoint' do
     before { CmSms.configuration.endpoints = nil }
@@ -36,26 +36,10 @@ RSpec.describe CmSms::Request do
   end
 
   describe '#perform' do
-    context 'when the API endpoint is missing' do
-      let(:resource) do
-        request.instance_variable_set('@endpoint', nil)
-        request
-      end
-      it { expect { resource.perform }.to raise_error CmSms::Configuration::EndpointMissing }
-    end
-
-    context 'when the API path is missing' do
-      let(:resource) do
-        request.instance_variable_set('@path', nil)
-        request
-      end
-      it { expect { resource.perform }.to raise_error CmSms::Configuration::PathMissing }
-    end
-
     context 'when request was successful' do
       it 'return a instance CmSms::Response' do
         http_response = Net::HTTPOK.new('post', 200, 'found')
-        http_response.content_type = 'text/xml'
+        http_response.content_type = 'application/json'
         allow(http_response).to receive(:body).and_return('')
         response = CmSms::Response.new(http_response)
 

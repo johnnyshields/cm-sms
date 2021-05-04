@@ -2,12 +2,12 @@ require 'spec_helper'
 require 'cm_sms/configuration'
 
 RSpec.describe CmSms::Configuration do
-  it 'has a endpoit set in constant' do
+  it 'has a endpoint set in constant' do
     expect(CmSms::Configuration::ENDPOINTS).to eq %w[https://gw.cmtelecom.com]
   end
 
   it 'has a path default' do
-    expect(CmSms::Configuration::PATH).to eq '/gateway.ashx'
+    expect(CmSms::Configuration::PATH).to eq '/v1.0/message'
   end
 
   let(:config) { described_class.new }
@@ -71,7 +71,7 @@ RSpec.describe CmSms::Configuration do
 
     context 'when dcs is not set' do
       it 'returns the default dcs set in constant' do
-        expect(config.dcs).to eq CmSms::Configuration::DCS
+        expect(config.dcs).to eq nil
       end
     end
   end
@@ -125,25 +125,6 @@ RSpec.describe CmSms::Configuration do
       it 'returns the set from' do
         expect(resource.from).to eq 'me'
       end
-    end
-  end
-
-  describe '#to' do
-    context 'when to is set through setter' do
-      subject(:resource) do
-        config.to = 'you'
-        config
-      end
-      it 'returns the set to' do
-        expect(resource.to).to eq 'you'
-      end
-    end
-  end
-
-  describe '#defaults' do
-    it 'returns confog defaults' do
-      expect(config.defaults.key?(:from)).to be true
-      expect(config.defaults.key?(:to)).to be true
     end
   end
 end

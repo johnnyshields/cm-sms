@@ -1,15 +1,17 @@
 module CmSms
   class Response
-    attr_reader :net_http_response, :body, :code
+    attr_reader :net_http_response,
+                :body,
+                :code
 
     def initialize(net_http_response)
       @net_http_response = net_http_response
-      @body              = @net_http_response.body
-      @code              = @net_http_response.code
+      @code = @net_http_response.code
+      @body = JSON.parse(@net_http_response.body) rescue @net_http_response.body
     end
 
     def success?
-      body.to_s.strip.empty? && code.to_i == 200
+      code.to_i == 200
     end
 
     def failure?
@@ -17,7 +19,8 @@ module CmSms
     end
 
     def error
-      body.sub('Error: ERROR', '').strip
+      return unless body.is_a?(Hash)
+      body.dig('messages', 0, 'messageDetails')
     end
   end
 end

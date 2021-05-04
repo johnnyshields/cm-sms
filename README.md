@@ -1,65 +1,47 @@
-![alt text](https://d21buns5ku92am.cloudfront.net/59399/images/195128-FL_Logo.4c_pos-9e9519-medium-1455014952.png "Logo Finleap GmbH")
-
-# Cm-Sms
+# CM Messaging
 
 [![Build Status](https://img.shields.io/travis/HitFox/cm-sms.svg?style=flat-square)](https://travis-ci.org/HitFox/cm-sms)
 [![Gem](https://img.shields.io/gem/dt/cm-sms.svg?style=flat-square)](https://rubygems.org/gems/cm-sms)
 [![Code Climate](https://img.shields.io/codeclimate/github/HitFox/cm-sms.svg?style=flat-square)](https://codeclimate.com/github/HitFox/cm-sms)
 [![Coverage](https://img.shields.io/coveralls/HitFox/cm-sms.svg?style=flat-square)](https://coveralls.io/github/HitFox/cm-sms)
 
-## Description
+Send text messages via [CM Telecom's Business Messaging API](https://www.cm.com/en-en/app/docs/api/business-messaging-api/1.0/index/).
 
-Send text (SMS) messages via the HTTP API of [CM Telecom](https://www.cmtelecom.com) from your Ruby app.
-
-For Rails integration, please see: https://github.com/HitFox/cm-sms-rails.
-​
 ## Usage
 
-Create a class that is inherited from `CmSms::Messenger`.
+First, configure the app, e.g. in an initializer:
 
 ```ruby
-class TextMessageNotifier < CmSms::Messenger
+CmSms.configure do |config|
+  config.product_token = 'YOUR-PRODUCT-TOKEN'
 end
 ```
 
-Now you can add methods to send messages. For example, send a `welcome` message with:
+Then create a `CmSms::Message` and deliver it:
 
 ```ruby
-class TextMessageNotifier < CmSms::Messenger
-  default from: 'some string or mobile number'
-
-  def welcome(recipient)
-    @recipient = recipient
-    
-    content(to: recipient.mobile_number, body: 'Some text, reference: recipient.id)
-  end
-end
+msg = CmSms::Message.new(from: 'ACME',
+                         to: '+41 44 111 22 33',
+                         body: 'Lorem ipsum dolor sit amet.',
+                         reference: 'Ref:123')
+response = msg.deliver
 ```
 
-### Setting defaults
+### DCS Detection
 
-Use the public class method `default` to set default values that will be used in every method of your `CmSms::Messenger` subclass.
-This method accepts a `Hash` as the parameter with possible keys `:from`, `:to` and `:body`. You may override these defaults inside
-the methods themselves.
+This gem will automatically detect your DCS (Data Coding Scheme).
+It will use GSM (160-char max length) if possible, otherwise it will
+fallback to UCS2 (70-char max length). Moreover, it will set the
+number of parts automatically on the API call, so that you don't have to worry
+about rejections due to message length.
 
-Example:
+If you prefer to manage these aspects manually, you can do so on the Message object:
 
-```ruby
-class TextMessageNotifier < CmSms::Messenger
-  default from: 'Quentin', '00491710000000'
-  ...
-end
 ```
-
-### Deliver Messages
-
-To send your SMS, call the desired method and then call `deliver_now` on the return value.
-
-Calling the method returns a `CmSms::Message` object:
-
-```ruby
-message = TextMessageNotifier.new.welcome(User.first)   # => Returns a CmSms::Message object
-message.deliver_now
+CmSms::Message.new(...
+                   dcs: 8,
+                   min_parts: 3,
+                   max_parts: 5)
 ```
 
 ### Optional Number Validation
@@ -72,14 +54,19 @@ number is a mobile number.
 ## Installation
 
 If you user bundler, then just add 
+
 ```ruby
 $ gem 'cm-sms'
 ```
+
 to your Gemfile and execute
+
 ```
 $ bundle install
 ```
+
 or without bundler
+
 ```
 $ gem install cms-sms
 ```
@@ -95,7 +82,7 @@ or without bundler
 ```
 $ gem update cms-sms
 ```
-​
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/HitFox/cm-sms. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
