@@ -1,4 +1,5 @@
 require 'gsm_encoder'
+require 'cm_sms/multipart_calculator'
 require 'cm_sms/message_validator'
 require 'cm_sms/request_payload'
 require 'cm_sms/request'
@@ -7,8 +8,6 @@ module CmSms
   class Message
     DCS_GSM = 0
     DCS_UCS2 = 8
-    PART_LENGTH_GSM = 160
-    PART_LENGTH_UCS2 = 70
 
     attr_reader :from,
                 :to,
@@ -37,10 +36,6 @@ module CmSms
       request.perform
     end
 
-    def gsm?
-      dcs == DCS_GSM
-    end
-
     def payload
       RequestPayload.new(self).payload
     end
@@ -56,11 +51,7 @@ module CmSms
     end
 
     def detect_num_parts
-      (body.length.to_f / part_length).ceil
-    end
-
-    def part_length
-      gsm? ? PART_LENGTH_GSM : PART_LENGTH_UCS2
+      MultipartCalculator.new(body, dcs == DCS_GSM).num_parts
     end
   end
 end
